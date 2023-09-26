@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: easylb-controller
+  name: easylb-controller
+  namespace: easylb-system
+spec:
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: easylb-controller
+  template:
+    metadata:
+      labels:
+        app: easylb-controller
+    spec:
+      containers:
+      - image: kikocodes/easylb-controller
+        name: controller
+        ports:
+        - containerPort: 8080
+          name: metrics-server
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: metrics-server
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: metrics-server
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: easylb-controller
